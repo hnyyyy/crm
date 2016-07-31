@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.crm.mapper.ProductMapper">
+
+	<sql id="chanceQueryCondition">
+			<where>
+			<if test="name!=null and name!='%%'">
+				and name LIKE #{name}
+			</if>
+			
+			<if test="type!=null and type!='%%'">
+				and type LIKE #{type}
+			</if>
+			
+			<if test="batch!=null and batch!='%%'">
+				and batch LIKE #{batch}
+			</if>
+			</where>
+	</sql>
+	
+	<select id="getTotalElements" resultType="long">
+		SELECT count(id) FROM products
+		<include refid="chanceQueryCondition"/>
+	</select>
+	
+	<select id="getContent" resultType="com.atguigu.crm.entity.Product">
+		SELECT *
+		FROM(
+			SELECT rownum rn, id,name,type,batch,unit,price,memo
+			FROM products
+			<include refid="chanceQueryCondition"/>
+		) s
+		<![CDATA[
+		WHERE rn >= #{fromIndex} AND rn < #{endIndex}
+		]]>
+	</select>
+
+	<insert id="save">
+		INSERT INTO products(id,batch,memo,name,price,type,unit) VALUES(crm_seq.nextval,#{batch},
+		#{memo},#{name},#{price},#{type},#{unit})
+	</insert>
+	
+	<select id="getAllProduct" resultType="com.atguigu.crm.entity.Product">
+		SELECT * FROM products
+	</select>
+	
+	<select id="getProductById" resultType="com.atguigu.crm.entity.Product">
+		SELECT * FROM products WHERE id=#{id}
+	</select>
+	
+	<update id="update">
+		UPDATE products SET batch=#{batch},memo=#{memo},name=#{name},type=#{type},unit=#{unit},price=#{price}
+		WHERE id=#{id}
+	</update>
+	
+	<delete id="deleteByProductId">
+		DELETE FROM storages WHERE product_id=#{id}
+	</delete>
+	
+	<delete id="delete">
+		DELETE FROM products WHERE id=#{id}
+	</delete>
+</mapper>

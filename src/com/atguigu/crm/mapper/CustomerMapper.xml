@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.crm.mapper.CustomerMapper">
+	<sql id="chanceQueryCondition">
+		WHERE 1=1
+			<if test="name!=null and name!=''">
+			  AND c.name LIKE #{name} 
+			</if>
+			
+			<if test="managerName!=null and managerName!=''">
+			  AND s.name LIKE #{managerName}
+			</if>
+			
+			<if test="region!=null and region!=''">
+			  AND region LIKE #{region}
+			</if>
+			
+			<if test="level!=null and level!=''">
+				AND customer_level LIKE #{level}
+			</if>
+			
+			<if test="state!=null and state!=''">
+				AND c.state LIKE #{state}
+			</if>
+		
+	</sql>
+	
+	<update id="deleteById">
+		UPDATE customers SET state='删除' WHERE id=#{id}
+	</update>
+	
+	<select id="update">
+		UPDATE customers SET name=#{name},address=#{address},bank=#{bank},bank_account=#{bankAccount},
+		bankroll=#{bankroll},chief=#{chief},customer_level=#{level},credit=#{credit},fax=#{fax},
+		licence_no=#{licenceNo},local_tax_no=#{localTaxNo},region=#{region},satify=#{satify},
+		state=#{state},tel=#{tel},turnover=#{turnover},websit=#{websit},zip=#{zip},national_tax_no=#{nationalTaxNo}
+		WHERE id=#{id}
+	</select>
+	
+	<select id="getById" resultType="com.atguigu.crm.entity.Customer">
+		SELECT id,no,name,address,bank,bank_account,bankroll,chief,customer_level as "level", 
+		credit,fax,licence_no,local_tax_no,region,satify,state,tel,turnover,websit,zip,national_tax_no
+		FROM customers WHERE id=#{id}
+	</select>
+	
+	<select id="getAllRegion" resultType="java.lang.String">
+		SELECT item FROM dicts WHERE type='地区'
+	</select>
+	
+	<select id="getAllLevel" resultType="java.lang.String">
+		SELECT item FROM dicts WHERE type='客户等级'
+	</select>
+	
+	<select id="getAllSatify" resultType="java.lang.String">
+		SELECT item FROM dicts WHERE type='满意度'
+	</select>
+	
+	<select id="getAllCredit" resultType="java.lang.String">
+		SELECT item FROM dicts WHERE type='信用度'
+	</select>
+	
+	<select id="getAllManagers" resultType="com.atguigu.crm.entity.Contact">
+		SELECT s.name as "name" 
+	    FROM customers c
+	    LEFT OUTER JOIN contacts s
+	    ON s.id=c.manager_id
+	    WHERE manager_id is not null
+	</select>
+	
+	<select id="getTotalElements" resultType="long">
+		SELECT count(c.id) FROM customers c
+		LEFT OUTER JOIN contacts s
+		ON c.id=s.customer_id
+		<include refid="chanceQueryCondition"></include>
+	</select>
+	
+	<select id="getContent" resultType="com.atguigu.crm.entity.Customer">
+		SELECT *
+		FROM(
+			SELECT rownum rn,c.id,c.no,c.name,c.region,c.state,s.name as "manager.name",customer_level as "level"  
+			FROM customers c
+			LEFT OUTER JOIN contacts s
+			ON c.id=s.customer_id
+			<include refid="chanceQueryCondition"></include>
+		) s
+		<![CDATA[
+		WHERE rn >= #{fromIndex} AND rn < #{endIndex}
+		]]>
+	</select>
+
+</mapper>
